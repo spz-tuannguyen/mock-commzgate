@@ -17,6 +17,7 @@ class MockStore extends EventEmitter {
       validCloudId: 'demo_user',
       validCloudPassword: 'demo_password',
       validDeviceToken: 'cg_token_secret',
+      cloudStyle: 'official_01010', // 'official_01010' (e.g. 01010), 'prefix_01010', 'legacy_000', 'json'
       responseFormat: 'text' // 'text' | 'json' | 'xml'
     };
 

@@ -54,48 +54,61 @@ async function handleCloudSendMessage(req, res) {
   if (settings.simulationMode === 'error_01012') {
     logRecord.status = 'FAILED';
     logRecord.statusCode = '01012';
-    logRecord.statusMessage = 'UNAUTHORIZED';
+    logRecord.statusMessage = 'AUTHENTICATION_ERROR';
     store.addMessage(logRecord);
+
+    const raw = settings.cloudStyle === 'official_01010'
+      ? '01012: Authentication error'
+      : 'STATUS=01012:UNAUTHORIZED';
 
     return sendFormattedResponse(res, settings.responseFormat, {
       status: 'FAILED',
       httpStatus: 401,
       statusCode: '01012',
       messageId: msgId,
-      description: 'Unauthorized: Invalid API ID or Password',
-      rawText: 'STATUS=01012:UNAUTHORIZED'
+      description: 'Authentication error (Invalid UserID / Password / Signature)',
+      rawText: raw
     });
   }
 
   if (settings.simulationMode === 'error_01010') {
+    // Note: in fault injection we treat 01011 as invalid parameter error
     logRecord.status = 'FAILED';
-    logRecord.statusCode = '01010';
+    logRecord.statusCode = '01011';
     logRecord.statusMessage = 'INVALID_MOBILE';
     store.addMessage(logRecord);
+
+    const raw = settings.cloudStyle === 'official_01010'
+      ? '01011: Invalid parameter values. Eg. Mobile Number is in wrong format'
+      : 'STATUS=01011:INVALID_MOBILE';
 
     return sendFormattedResponse(res, settings.responseFormat, {
       status: 'FAILED',
       httpStatus: 400,
-      statusCode: '01010',
+      statusCode: '01011',
       messageId: msgId,
-      description: 'Invalid Mobile Number',
-      rawText: 'STATUS=01010:INVALID_MOBILE'
+      description: 'Invalid parameter values. Eg. Mobile Number is in wrong format',
+      rawText: raw
     });
   }
 
   if (settings.simulationMode === 'error_500') {
     logRecord.status = 'FAILED';
-    logRecord.statusCode = '09999';
-    logRecord.statusMessage = 'INTERNAL_SERVER_ERROR';
+    logRecord.statusCode = '01013';
+    logRecord.statusMessage = 'TRANSIENT_SYSTEM_ERROR';
     store.addMessage(logRecord);
+
+    const raw = settings.cloudStyle === 'official_01010'
+      ? '01013: Transient System error, please retry after 60 seconds'
+      : 'STATUS=01013:INTERNAL_SERVER_ERROR';
 
     return sendFormattedResponse(res, settings.responseFormat, {
       status: 'FAILED',
       httpStatus: 500,
-      statusCode: '09999',
+      statusCode: '01013',
       messageId: msgId,
-      description: 'Internal Server Error',
-      rawText: 'STATUS=09999:INTERNAL_SERVER_ERROR'
+      description: 'Transient System error, please retry after 60 seconds',
+      rawText: raw
     });
   }
 
@@ -110,8 +123,8 @@ async function handleCloudSendMessage(req, res) {
       httpStatus: 429,
       statusCode: '01020',
       messageId: msgId,
-      description: 'Too many requests, quota exceeded',
-      rawText: 'STATUS=01020:RATE_LIMIT_EXCEEDED'
+      description: 'Request limit exceeded, please retry later',
+      rawText: '01020: Request limit exceeded'
     });
   }
 
@@ -127,7 +140,7 @@ async function handleCloudSendMessage(req, res) {
       statusCode: settings.customStatusCode,
       messageId: msgId,
       description: settings.customStatusText,
-      rawText: `STATUS=${settings.customStatusCode}:${settings.customStatusText}`
+      rawText: `${settings.customStatusCode}: ${settings.customStatusText}`
     });
   }
 
@@ -145,7 +158,7 @@ async function handleCloudSendMessage(req, res) {
         statusCode: '01012',
         messageId: msgId,
         description: 'Authentication Failed: ID or Password does not match',
-        rawText: 'STATUS=01012:AUTHENTICATION_FAILED'
+        rawText: '01012: Authentication error'
       });
     }
   }
@@ -153,17 +166,17 @@ async function handleCloudSendMessage(req, res) {
   // 3. Validate Required Fields
   if (!mobile) {
     logRecord.status = 'FAILED';
-    logRecord.statusCode = '01010';
+    logRecord.statusCode = '01011';
     logRecord.statusMessage = 'MISSING_MOBILE';
     store.addMessage(logRecord);
 
     return sendFormattedResponse(res, settings.responseFormat, {
       status: 'FAILED',
       httpStatus: 400,
-      statusCode: '01010',
+      statusCode: '01011',
       messageId: msgId,
       description: 'Missing required parameter: Mobile',
-      rawText: 'STATUS=01010:MISSING_MOBILE'
+      rawText: '01011: Invalid parameter values. Mobile is required'
     });
   }
 
@@ -179,16 +192,32 @@ async function handleCloudSendMessage(req, res) {
       statusCode: '01011',
       messageId: msgId,
       description: 'Missing required parameter: Message',
-      rawText: 'STATUS=01011:MISSING_MESSAGE'
+      rawText: '01011: Invalid parameter values. Message is required'
     });
   }
 
   // 4. Success Response
+  logRecord.statusCode = '01010';
   store.addMessage(logRecord);
 
-  let rawText = `STATUS=000:SUCCESS:ID=${msgId}`;
-  if (generatedOtp) {
-    rawText += `,OTP=${generatedOtp}`;
+  let rawText = '';
+  const style = settings.cloudStyle || 'official_01010';
+
+  if (style === 'official_01010') {
+    // Official CommzGate standard code
+    if (generatedOtp) {
+      rawText = `01010,OTP=${generatedOtp}`;
+    } else {
+      rawText = `01010: Accepted for Submission to Mobile Operator by CloudSMS`;
+    }
+  } else if (style === 'prefix_01010') {
+    rawText = `STATUS=01010:SUCCESS:ID=${msgId}`;
+    if (generatedOtp) rawText += `,OTP=${generatedOtp}`;
+  } else if (style === 'legacy_000') {
+    rawText = `STATUS=000:SUCCESS:ID=${msgId}`;
+    if (generatedOtp) rawText += `,OTP=${generatedOtp}`;
+  } else {
+    rawText = `01010`;
   }
 
   // Custom response format override from query (?format=json, ?format=xml, ?format=simple)
@@ -196,16 +225,16 @@ async function handleCloudSendMessage(req, res) {
   const activeFormat = formatOverride || settings.responseFormat;
 
   if (formatOverride === 'simple') {
-    return res.status(200).send('000');
+    return res.status(200).send('01010');
   }
 
   return sendFormattedResponse(res, activeFormat, {
     status: 'SUCCESS',
     httpStatus: 200,
-    statusCode: '000',
+    statusCode: '01010',
     messageId: msgId,
     otp: generatedOtp,
-    description: 'Message queued successfully',
+    description: 'Accepted for Submission to Mobile Operator by CloudSMS',
     rawText: rawText
   });
 }
