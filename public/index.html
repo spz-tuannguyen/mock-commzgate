@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CommzGate Mock Gateway | Cloud & CG-ONE Appliance Simulator</title>
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Navbar -->
+    <header class="navbar">
+      <div class="nav-brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            <path d="M8 9h8"></path>
+            <path d="M8 13h5"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>CommzGate <span>Mock</span></h1>
+          <div class="brand-tags">
+            <span class="tag tag-cloud">Cloud API</span>
+            <span class="tag tag-device">CG-ONE Device</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-status">
+        <div class="connection-badge" id="sseBadge">
+          <span class="pulse-dot"></span>
+          <span id="sseStatusText">Connecting...</span>
+        </div>
+        <button id="btnRefresh" class="btn btn-icon" title="Làm mới">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Stat Cards Overview -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon icon-total">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Tổng SMS Đã Nhận</span>
+          <h2 class="stat-value" id="statTotal">0</h2>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-cloud">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">CommzGate Cloud</span>
+          <h2 class="stat-value" id="statCloud">0</h2>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-device">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+            <rect x="9" y="9" width="6" height="6"></rect>
+            <line x1="9" y1="1" x2="9" y2="4"></line>
+            <line x1="15" y1="1" x2="15" y2="4"></line>
+            <line x1="9" y1="20" x2="9" y2="23"></line>
+            <line x1="15" y1="20" x2="15" y2="23"></line>
+            <line x1="20" y1="9" x2="23" y2="9"></line>
+            <line x1="20" y1="14" x2="23" y2="14"></line>
+            <line x1="1" y1="9" x2="4" y2="9"></line>
+            <line x1="1" y1="14" x2="4" y2="14"></line>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">CG-ONE Device</span>
+          <h2 class="stat-value" id="statDevice">0</h2>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-success">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Tỷ lệ Thành Công</span>
+          <h2 class="stat-value" id="statRate">100%</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" data-tab="inboxTab">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+        Live Inbox & Traffic
+      </button>
+      <button class="tab-btn" data-tab="simulatorTab">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        Gửi Thử Nghiệm (Tester)
+      </button>
+      <button class="tab-btn" data-tab="settingsTab">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Mô Phỏng Lỗi & Cấu Hình
+      </button>
+      <button class="tab-btn" data-tab="docsTab">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        Tài Liệu Tích Hợp
+      </button>
+    </nav>
+
+    <!-- Tab 1: Live Inbox & Traffic -->
+    <main id="inboxTab" class="tab-pane active">
+      <div class="inbox-toolbar">
+        <div class="filter-group">
+          <button class="filter-btn active" data-filter="all">Tất Cả</button>
+          <button class="filter-btn" data-filter="cloud">Cloud</button>
+          <button class="filter-btn" data-filter="device">Device (CG-ONE)</button>
+        </div>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Tìm theo số điện thoại, nội dung, ID..." />
+        </div>
+        <button id="btnClearLog" class="btn btn-outline-danger">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          Xóa Lịch Sử
+        </button>
+      </div>
+
+      <div class="messages-container" id="messagesContainer">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <h3>Chưa có tin nhắn SMS nào</h3>
+          <p>Hãy gửi request từ ứng dụng của bạn hoặc chuyển sang tab <strong>"Gửi Thử Nghiệm"</strong> để test.</p>
+        </div>
+        <div class="message-list" id="messageList"></div>
+      </div>
+    </main>
+
+    <!-- Tab 2: Test Simulator -->
+    <section id="simulatorTab" class="tab-pane">
+      <div class="card card-glass">
+        <div class="card-header">
+          <h3>Trình Thử Nghiệm Gửi SMS Trực Tiếp</h3>
+          <p>Mô phỏng cuộc gọi API gửi tin nhắn tới CommzGate Cloud hoặc CG-ONE Device.</p>
+        </div>
+        <div class="card-body">
+          <form id="simulatorForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Chế độ Gateway (Target Mode)</label>
+                <select id="simMode" class="form-control">
+                  <option value="cloud">CommzGate Cloud (/gateway/SendMessage)</option>
+                  <option value="device">CommzGate Device / CG-ONE (/api/SendMsg)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Số Điện Thoại Người Nhận (Mobile)</label>
+                <input type="text" id="simMobile" class="form-control" value="6591234567" placeholder="e.g. 6591234567" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Nội Dung Tin Nhắn (SMS Content)</label>
+              <textarea id="simMessage" class="form-control" rows="3" placeholder="Nhập nội dung SMS test..." required>Mã OTP CommzGate Mock của bạn là: 892011</textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Loại Tin Nhắn (Type)</label>
+                <select id="simType" class="form-control">
+                  <option value="A">A (Standard ASCII, max 160 chars)</option>
+                  <option value="LA">LA (Long ASCII, max 459 chars)</option>
+                  <option value="U">U (Unicode UTF-8)</option>
+                  <option value="AUTO">AUTO (Tự động phát hiện)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Sinh Mã OTP Ngẫu Nhiên?</label>
+                <div class="checkbox-wrapper">
+                  <input type="checkbox" id="simOtp" checked />
+                  <label for="simOtp">Bật cờ OTP=true (Gateway sẽ tự sinh OTP kèm phản hồi)</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="btnSimSend">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                Gửi Thử Nghiệm Ngay
+              </button>
+            </div>
+          </form>
+
+          <div class="sim-response-box" id="simResponseBox" style="display: none;">
+            <h4>Kết Quả Phản Hồi Từ Mock Server:</h4>
+            <pre><code id="simResponseText"></code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Settings & Fault Injection -->
+    <section id="settingsTab" class="tab-pane">
+      <div class="card card-glass">
+        <div class="card-header">
+          <h3>Mô Phỏng Lỗi & Cấu Hình Phản Hồi (Fault Injection)</h3>
+          <p>Tùy chỉnh hành vi của Mock Server để kiểm thử khả năng chịu lỗi và retry của ứng dụng client.</p>
+        </div>
+        <div class="card-body">
+          <form id="settingsForm">
+            <div class="form-group">
+              <label>Kịch Bản Mô Phỏng (Simulation Scenario)</label>
+              <select id="cfgSimulationMode" class="form-control">
+                <option value="normal">Bình thường: Luôn thành công (HTTP 200 / STATUS=000)</option>
+                <option value="error_01012">Lỗi 01012: Unauthorized (Sai ID, Password hoặc Token)</option>
+                <option value="error_01010">Lỗi 01010: Invalid Mobile Number (Số điện thoại không hợp lệ)</option>
+                <option value="error_429">Lỗi 429: Rate Limit / Modem Queue Full (Quá tải hàng đợi)</option>
+                <option value="error_500">Lỗi 500: Internal Server Error / Modem Hardware Failure</option>
+                <option value="custom">Tùy biến mã lỗi riêng...</option>
+              </select>
+            </div>
+
+            <div class="form-row" id="customErrorFields" style="display: none;">
+              <div class="form-group">
+                <label>Mã Lỗi Tuỳ Biến (Error Code)</label>
+                <input type="text" id="cfgCustomCode" class="form-control" value="01099" />
+              </div>
+              <div class="form-group">
+                <label>Mô Tả Lỗi (Error Message)</label>
+                <input type="text" id="cfgCustomText" class="form-control" value="Simulated Custom Failure" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Giả Lập Độ Trễ Mạng (Network Latency): <span id="latencyDisplay" class="text-highlight">0 ms</span></label>
+              <input type="range" id="cfgLatency" class="range-slider" min="0" max="5000" step="100" value="0" />
+              <div class="range-labels">
+                <span>0 ms (Tức thì)</span>
+                <span>500 ms</span>
+                <span>1500 ms</span>
+                <span>3000 ms</span>
+                <span>5000 ms (Chậm)</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Định Dạng Phản Hồi Mặc Định (Format)</label>
+                <select id="cfgFormat" class="form-control">
+                  <option value="text">Plain Text (Chuẩn mặc định của CommzGate)</option>
+                  <option value="json">JSON (application/json)</option>
+                  <option value="xml">XML (application/xml)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Bắt Buộc Xác Thực Tài Khoản (Require Auth)</label>
+                <div class="checkbox-wrapper">
+                  <input type="checkbox" id="cfgRequireAuth" />
+                  <label for="cfgRequireAuth">Bật kiểm tra chính xác ID/Password hoặc Token</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row" id="authFields">
+              <div class="form-group">
+                <label>Cloud API ID Hợp Lệ</label>
+                <input type="text" id="cfgValidCloudId" class="form-control" value="demo_user" />
+              </div>
+              <div class="form-group">
+                <label>Cloud API Password Hợp Lệ</label>
+                <input type="text" id="cfgValidCloudPassword" class="form-control" value="demo_password" />
+              </div>
+              <div class="form-group">
+                <label>Device Token Hợp Lệ (CG-ONE)</label>
+                <input type="text" id="cfgValidDeviceToken" class="form-control" value="cg_token_secret" />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="btnSaveSettings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                Lưu Cấu Hình
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Docs & Integration -->
+    <section id="docsTab" class="tab-pane">
+      <div class="card card-glass">
+        <div class="card-header">
+          <h3>Tài Liệu Tích Hợp & Mẫu Code Gọi API</h3>
+          <p>Thay thế URL CommzGate thật trong dự án của bạn bằng URL của Mock Server này.</p>
+        </div>
+        <div class="card-body">
+          <div class="endpoints-table-wrap">
+            <h4>Danh Sách Endpoints Được Hỗ Trợ:</h4>
+            <table class="endpoints-table">
+              <thead>
+                <tr>
+                  <th>Chế Độ</th>
+                  <th>Method</th>
+                  <th>Đường Dẫn Endpoint</th>
+                  <th>Mô Tả & Tham Số Chính</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="tag tag-cloud">Cloud</span></td>
+                  <td><code>GET / POST</code></td>
+                  <td><code>/gateway/SendMessage</code></td>
+                  <td>Gửi SMS Cloud: <code>ID, Password, Mobile, Type, Message, OTP</code></td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-cloud">Cloud</span></td>
+                  <td><code>GET / POST</code></td>
+                  <td><code>/gateway/SendMessage.aspx</code></td>
+                  <td>Tương thích các thư viện legacy .NET của Commzgate</td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-device">Device</span></td>
+                  <td><code>GET / POST</code></td>
+                  <td><code>/api/SendMsg</code> hoặc <code>/SendMsg</code></td>
+                  <td>Gửi SMS CG-ONE: <code>token, mobile, message, otp</code></td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-device">Device</span></td>
+                  <td><code>GET / POST</code></td>
+                  <td><code>/api/GetMsgStat</code></td>
+                  <td>Kiểm tra trạng thái tin nhắn modem: <code>id, token</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-samples-section">
+            <h4>Mẫu Code Gọi API:</h4>
+            <div class="code-tabs">
+              <button class="code-tab-btn active" data-lang="csharp">C# (.NET HttpClient)</button>
+              <button class="code-tab-btn" data-lang="curl">cURL</button>
+              <button class="code-tab-btn" data-lang="nodejs">Node.js / Axios</button>
+              <button class="code-tab-btn" data-lang="python">Python</button>
+            </div>
+
+            <div class="code-pane active" id="code-csharp">
+              <pre><code>// 1. Commzgate Cloud:
+var client = new HttpClient();
+var cloudUrl = "https://your-mock-url.com/gateway/SendMessage?ID=my_id&Password=my_pass&Mobile=6591234567&Type=A&Message=Hello+World&OTP=true";
+var response = await client.GetAsync(cloudUrl);
+string result = await response.Content.ReadAsStringAsync();
+// Kết quả: STATUS=000:SUCCESS:ID=CGM12345678,OTP=682910
+
+// 2. Commzgate Device (CG-ONE Appliance):
+var deviceUrl = "https://your-mock-url.com/api/SendMsg?token=cg_token_secret&mobile=6591234567&message=Alert+from+CG-ONE";
+var devResponse = await client.GetAsync(deviceUrl);
+string devResult = await devResponse.Content.ReadAsStringAsync();
+// Kết quả: CG1083921</code></pre>
+            </div>
+
+            <div class="code-pane" id="code-curl">
+              <pre><code># Test Commzgate Cloud (GET)
+curl "http://localhost:3000/gateway/SendMessage?ID=demo&Password=123&Mobile=6591234567&Type=A&Message=Test+SMS&OTP=true"
+
+# Test Commzgate Cloud (POST JSON)
+curl -X POST "http://localhost:3000/gateway/SendMessage" \
+  -H "Content-Type: application/json" \
+  -d '{"ID":"demo","Password":"123","Mobile":"6591234567","Message":"Test SMS","OTP":true}'
+
+# Test Commzgate Device CG-ONE (GET)
+curl "http://localhost:3000/api/SendMsg?token=cg_token_secret&mobile=6591234567&message=Test+Device+SMS"</code></pre>
+            </div>
+
+            <div class="code-pane" id="code-nodejs">
+              <pre><code>const axios = require('axios');
+
+// Gửi qua CommzGate Cloud
+async function sendCloudSMS() {
+  const res = await axios.get('https://your-mock-url.com/gateway/SendMessage', {
+    params: {
+      ID: 'demo_user',
+      Password: 'demo_password',
+      Mobile: '6591234567',
+      Type: 'A',
+      Message: 'Xin chao tu Node.js',
+      OTP: 'true'
+    }
+  });
+  console.log(res.data);
+}</code></pre>
+            </div>
+
+            <div class="code-pane" id="code-python">
+              <pre><code>import requests
+
+# Gửi qua CommzGate Cloud
+params = {
+    'ID': 'demo_user',
+    'Password': 'demo_password',
+    'Mobile': '6591234567',
+    'Type': 'A',
+    'Message': 'Hello from Python',
+    'OTP': 'true'
+}
+r = requests.get('https://your-mock-url.com/gateway/SendMessage', params=params)
+print(r.text)</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Message Detail Modal / Drawer -->
+    <div class="modal-backdrop" id="messageModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modalTitle">Chi Tiết Request Tin Nhắn SMS</h3>
+          <button class="btn-close" id="btnCloseModal">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Dynamic Content -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

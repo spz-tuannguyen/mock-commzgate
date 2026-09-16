@@ -1,0 +1,23 @@
+{
+  "name": "mock-commzgate",
+  "version": "1.0.0",
+  "description": "Mock SMS Gateway for Commzgate (Cloud & Device / Appliance)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [
+    "commzgate",
+    "sms",
+    "mock",
+    "gateway",
+    "cg-one"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
